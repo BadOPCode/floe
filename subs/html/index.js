@@ -43,20 +43,30 @@ function sendPage(request_packet) {
     var file_name = __dirname+"/content/"+request_packet.host_name+request_packet.request+".ejs";
     fs.readFile(file_name, function(err, data) {
        if (!err) {
+           template_object.filename = file_name;
            var options = {
              filename: __dirname+"/cache/"+request_packet.host_name+request_packet.request
            };
-           response_packet.content = ejs.render(data.toString(), template_object, options);
-           plsub.send(response_packet);
+           try {
+                response_packet.content = ejs.render(data.toString(), template_object, options);
+                plsub.send(response_packet);
+           } catch(err) {
+               plsub.logger.error(err.message);
+           }
        } else {
             file_name = __dirname+"/content/default"+request_packet.request+".ejs";
             fs.readFile(file_name, function(err, data){
                 if (!err) {
+                    template_object.filename = file_name;
                     var options = {
                      filename: __dirname+"/cache/default"+request_packet.request
                     };
-                    response_packet.content = ejs.render(data.toString(), template_object, options);
-                    plsub.send(response_packet);
+                    try {
+                        response_packet.content = ejs.render(data.toString(), template_object, options);
+                        plsub.send(response_packet);
+                    } catch(err) {
+                        plsub.logger.error(err.message);
+                    }
                 } else {
                     var noroute_packet = {
                         type: "noResponse",

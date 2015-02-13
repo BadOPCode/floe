@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "JSONStream": "^0.10.0",
-    "ejs": "^1.0.0"
+    "ejs": "^1.0.0",
+    "party-line-sub": "^1.0.0"
   }
 }
