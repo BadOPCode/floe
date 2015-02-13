@@ -5,13 +5,16 @@ WARNING STILL IN A ALPHA STAGE!
 
 Installing
 ----------
+
 clone the git repo of Floe
-{code}
+
+```
 git clone https://github.com/BadOPCode/floe.git
-{code}
+```
 
 in the Floe directory type
-{code}
+
+```
 npm install
 cd subs/html
 npm install
@@ -19,7 +22,7 @@ cd ../static
 npm install
 cd ../web
 npm install
-{code}
+```
 
 This is a bit clunky but haven't even started working on a installation script yet.
 
