@@ -1,0 +1,15 @@
+{
+  "name": "route-monster",
+  "version": "0.0.0",
+  "description": "Handles HTTP incoming requests and fullfills them from PartyLine bus.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shawn Rapp",
+  "license": "ISC",
+  "dependencies": {
+    "JSONStream": "^0.10.0",
+    "node-uuid": "^1.4.2"
+  }
+}

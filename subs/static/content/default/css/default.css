@@ -1,0 +1,50 @@
+#topbar {
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:25px;
+    background-color: rgba(4,4,4,0.5);
+}
+
+#main-page {
+    margin-top:50px;
+    margin-left: 25px;
+}
+
+.burger-btn {
+  position:absolute;
+  left: 15px;
+  z-index: 1000;
+}
+
+
+.burger-menu.open-add-active,
+.burger-menu.open-remove-active,
+.burger-btn.open-add-active,
+.burger-btn.open-remove-active {
+  -webkit-transition: linear 0.25s;
+     -moz-transition: linear 0.25s;
+      -ms-transition: linear 0.25s;
+       -o-transition: linear 0.25s;
+          transition: linear 0.25s;
+}
+
+.burger-btn.open {
+    left: 150px;
+}
+
+.burger-menu {
+    position: fixed;
+    top: 0;
+    left: -200px;
+    z-index: 999;
+    opacity: 0;
+    width: 200px;
+    height:100%;
+}
+
+.burger-menu.open {
+    left: 0;
+    opacity: 1;
+}

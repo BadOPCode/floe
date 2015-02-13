@@ -1,0 +1,14 @@
+{
+  "name": "floe",
+  "version": "1.0.0",
+  "description": "Floe web server.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shawn Rapp",
+  "license": "MIT",
+  "dependencies": {
+    "party-line": "*"
+  }
+}
