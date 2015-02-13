@@ -40,4 +40,4 @@ Match weight.  A algorithm that will determin what is the best response for the 
 Better instructions.
 More Angular and Bootstrap front end love.  
 
-PS: Please remember if you hate any sub in the server.  Like you want Jade instead of EJS...  Feel free to make your own sub just how you want.  In fact you can leave the EJS sub in their and run a new sub that renders in Jade no problem.  And it's fairly easy to do.
+PS: Please remember if you hate any sub in the server.  Like you want Jade instead of EJS...  Feel free to make your own sub just how you want.  In fact you can leave the EJS sub in there and run a new sub that renders in Jade no problem.  And it's fairly easy to do.
