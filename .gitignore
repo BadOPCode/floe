@@ -28,6 +28,9 @@ node_modules
 # Users Environment Variables
 .lock-wscript
 
+# Bootstrap
+subs/less/src/bootstrap
+
 #misc
 npm-debug.log
 .c9

@@ -1,0 +1,20 @@
+{
+  "name": "floe-less",
+  "version": "1.0.0",
+  "description": "Less subsystem for Floe",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shawn Rapp",
+  "license": "MIT",
+  "dependencies": {
+    "bootstrap": "^3.3.2",
+    "ecstatic": "^0.6.1",
+    "flatiron": "^0.4.3",
+    "less": "^2.4.0",
+    "party-line-sub": "^1.0.0",
+    "shelljs": "^0.3.0",
+    "union": "^0.4.4"
+  }
+}

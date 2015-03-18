@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-//'use strict';
+'use strict';
 /**
  * Static Content Handler
  * Shawn Rapp - 11/25/2014

@@ -1,0 +1,17 @@
+{
+    "global": {
+        "hostname": "localhost",
+        "port": 5432,
+        "import_path": [
+            "src/bootstrap"
+        ]
+    },
+    "default": {
+        "import_path": [
+            "src/default"
+        ],
+        "compile": [
+            "default.less"
+        ]
+    }
+}
