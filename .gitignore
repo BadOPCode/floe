@@ -30,6 +30,7 @@ node_modules
 
 # Bootstrap
 subs/less/src/bootstrap
+subs/less/content
 
 #misc
 npm-debug.log
