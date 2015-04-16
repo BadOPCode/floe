@@ -41,9 +41,10 @@ var RequestHandler = function(req, res) {
     self.post_vars = req.post_vars;
     self.response_stream = res;
     self.scheduled_to_close = false;
+    self.headers = {};
 
     var packet = {
-        context: "web.html",
+        context: "web",
         type: "request",
         request_id: self.id,
         method: self.method,
@@ -55,7 +56,7 @@ var RequestHandler = function(req, res) {
 
     request_stack[self.id] = self;
 
-    plsub.queryService("web.html", function(listen_stack){
+    plsub.queryService("web", function(listen_stack){
         request_stack[self.id].listen_stack = listen_stack;
     });
     
@@ -70,14 +71,19 @@ RequestHandler.prototype.processPacket = function(packet) {
     
     if (packet.header === undefined) return;
 
-    self.response_stream.writeHead(packet.response_code, packet.header);
+    //copy packet with HTML's header to what will be the response header
+    Object.getOwnPropertyNames(packet.header).forEach(function(name){
+        self.headers[name] = Object.getOwnPropertyDescriptor(packet.header, name);
+    });
+
+    self.response_stream.writeHead(packet.response_code, self.headers);
     self.response_stream.write(packet.content);
     self.response_stream.end();
 };
 
 RequestHandler.prototype.processRedirect = function(packet) {
     var self = this;
-    
+
     var options = {
         hostname: packet.hostname,
         port: packet.port,

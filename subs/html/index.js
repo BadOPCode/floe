@@ -12,16 +12,6 @@ var template_object = {};
 plsub.addListeningContext("web.html");
 plsub.on("request", sendPage);
 
-process.on('SIGINT', function () {
-    var packet = {
-        type:"close",
-        exit_level: 0,
-    };
-    plsub.send(packet);
-
-    process.kill('SIGINT');
-});
-
 process.chdir(__dirname);
 
 function sendPage(request_packet) {

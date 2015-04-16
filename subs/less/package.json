@@ -9,11 +9,11 @@
   "author": "Shawn Rapp",
   "license": "MIT",
   "dependencies": {
-    "bootstrap": "^3.3.2",
+    "bootstrap": "^3.3.4",
     "ecstatic": "^0.6.1",
     "flatiron": "^0.4.3",
     "less": "^2.4.0",
-    "party-line-sub": "^1.0.0",
+    "party-line-sub": "^1.0.1",
     "shelljs": "^0.3.0",
     "union": "^0.4.4"
   }

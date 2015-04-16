@@ -17,30 +17,14 @@
             <div class="navbar navbar-default" id="topbar">
                 <div class="container-fluid">
                     <div class="navbar-inner">
-                        <div class="sys-menu" ng-controller="SystemMenu as sysMenu">
-                            <button class="burger-btn btn btn-default navbar-btn" ng-class="{ open: sysMenu.menuOpen }" ng-click="sysMenu.toggleMenuState()"><i class="fa fa-bars"></i></button>
-                            <div class="burger-menu navbar navbar-default" ng-class="{ open: sysMenu.menuOpen }">
+                        <div class="sys-menu" ng-controller="SideShelfPanel as sideShelf">
+                            <button class="burger-btn btn btn-default navbar-btn" ng-class="{ open: sideShelf.menuOpen }" ng-click="sideShelf.toggleMenuState()"><i class="fa fa-bars"></i></button>
+                            <div class="burger-menu navbar navbar-default" ng-class="{ open: sideShelf.menuOpen }">
                                 <div class="navbar-header">
-                                    <span class="navbar-brand">Sidebar menu</span>
+                                    <span class="navbar-brand">{{sideShelf.title}}</span>
                                 </div>
-                                <div class="navbar-collapse collapse sidebar-navbar-collapse">
+                                <div class="navbar-collapse collapse sidebar-navbar-collapse" ng-controller="SideMenu as sideMenu">
                                     <ul class="nav navbar-nav">
-                                        <li class="active"><a href="#">Menu Item 1</a></li>
-                                        <li><a href="#">Menu Item 2</a></li>
-                                        <li class="dropdown">
-                                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
-                                            <ul class="dropdown-menu">
-                                                <li><a href="#">Action</a></li>
-                                                <li><a href="#">Another action</a></li>
-                                                <li><a href="#">Something else here</a></li>
-                                                <li class="divider"></li>
-                                                <li class="dropdown-header">Nav header</li>
-                                                <li><a href="#">Separated link</a></li>
-                                                <li><a href="#">One more separated link</a></li>
-                                            </ul>
-                                        </li>
-                                        <li><a href="#">Menu Item 4</a></li>
-                                        <li><a href="#">Reviews <span class="badge">1,118</span></a></li>
                                     </ul>
                                 </div>
                             </div>
