@@ -30,17 +30,28 @@ This is a bit clunky but haven't even started working on a installation script y
 Quick Overview
 --------------
 
-Web is the sub system that handles incoming requests and passes it along the bus.
+Floe web services is not like any other web server out there.  It's actually a 
+collage of subsystems that connect to a service backbone called Party Line.
+Unlike other servers where intercommunication happens as an external addition, 
+in Floe intercommunication happens at it's very core.  The entire web 
+transaction is broken up into subsystems.  This allows for easy to scale and
+easy to write web services.
 
-Static is a static content repository.  It has a directory named content.  In the content folder there should be a default folder that matches all requests and folders named after domain names that have specific files that matches the request for that domain name.  Anything can be in the static sub.  It's basically the equiv of Apache with no script modules loaded.
 
-Last but not least is the html sub.  This sub too has a content directory that has the default for unmatched domain names and folders with the domains.  HTML sub is a HTML generator that uses the EJS template system though.  Currently as of writing this doc, it is in a primitive state because it's not able to generate a page / partial object like it will in the future.
+
 
 In Development
 --------------
-LESS Sub that will compile LESS files and cache CSS's.
-Match weight.  A algorithm that will determin what is the best response for the request.
-Better instructions.
-More Angular and Bootstrap front end love.  
+- API subsystem.
+- Angular factories and directives that simplify connecting to Floe.
+- Session handler subsystem.
+- Authorization subsystem.
+- Better instructions.
+- Installation and upgrade scripts
 
-PS: Please remember if you hate any sub in the server.  Like you want Jade instead of EJS...  Feel free to make your own sub just how you want.  In fact you can leave the EJS sub in there and run a new sub that renders in Jade no problem.  And it's fairly easy to do.
+PS: Please remember if you hate any sub in the server.  Like you want Jade 
+instead of EJS...  Feel free to make your own sub just how you want.  In fact 
+you can leave the EJS sub in there and run a new sub that renders in Jade no 
+problem.  And it's fairly easy to do.  Feel free to fork your own project based
+on Floe.  Please just mention this project as part of your inspiration if you
+do.

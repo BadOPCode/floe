@@ -32,6 +32,10 @@ node_modules
 subs/less/src/bootstrap
 subs/less/content
 
+#local MongoDB server
+mongodb
+mongod
+
 #misc
 npm-debug.log
 .c9
