@@ -1,0 +1,18 @@
+{
+  "name": "api-sub",
+  "version": "1.0.0",
+  "description": "API Sub",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shawn Rapp",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^0.8.2",
+    "mongoose": "^4.0.1",
+    "party-line-sub": "^1.0.1",
+    "passport": "^0.2.1",
+    "passport-local": "^1.0.0"
+  }
+}

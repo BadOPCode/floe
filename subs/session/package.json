@@ -1,0 +1,15 @@
+{
+  "name": "floe-session",
+  "version": "1.0.0",
+  "description": "Session controller for Floe.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shawn Rapp",
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "^2.0.27",
+    "party-line-sub": "^1.0.2"
+  }
+}
