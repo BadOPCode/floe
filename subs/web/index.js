@@ -4,13 +4,13 @@
  * Routes web traffic.
  * Shawn Rapp - 11/23/2014
  */
- 
-var http = require('http')
-,   plsub = require("party-line-sub");
+
+var http = require('http'),
+    plsub = require("party-line-sub");
 
 var request_stack = [];
 
-request_stack.remove = function(to, from){
+request_stack.remove = function(to, from) {
     var rest = this.slice((to || from) + 1 || this.length);
     this.length = from < 0 ? this.length + from : from;
     return this.push.apply(this, rest);
@@ -21,7 +21,7 @@ request_stack.remove = function(to, from){
  */
 var garbageCollector = function() {
     //run backwards so loop doesn't break when removing closed requests
-    for (var i=request_stack.length; i>0; i--) {  
+    for (var i = request_stack.length; i > 0; i--) {
         if (request_stack[i].scheduled_to_close) {
             request_stack.remove(i);
         }
@@ -33,8 +33,8 @@ var garbageCollector = function() {
  */
 var RequestHandler = function(req, res) {
     var self = this;
-    
-    self.id = require("node-uuid").v4();  //generate a request ID
+
+    self.id = require("node-uuid").v4(); //generate a request ID
     self.method = req.method;
     self.host_name = req.headers.host;
     self.url = req.url;
@@ -56,23 +56,23 @@ var RequestHandler = function(req, res) {
 
     request_stack[self.id] = self;
 
-    plsub.queryService("web", function(listen_stack){
+    plsub.queryService("web", function(listen_stack) {
         request_stack[self.id].listen_stack = listen_stack;
     });
-    
+
     self.response_stream.on("close", function() {
-       self.scheduled_to_close = true; 
-       garbageCollector();
+        self.scheduled_to_close = true;
+        garbageCollector();
     });
 };
 
 RequestHandler.prototype.processPacket = function(packet) {
     var self = this;
-    
+
     if (packet.header === undefined) return;
 
     //copy packet with HTML's header to what will be the response header
-    Object.getOwnPropertyNames(packet.header).forEach(function(name){
+    Object.getOwnPropertyNames(packet.header).forEach(function(name) {
         self.headers[name] = Object.getOwnPropertyDescriptor(packet.header, name);
     });
 
@@ -90,46 +90,48 @@ RequestHandler.prototype.processRedirect = function(packet) {
         path: packet.path,
         method: "GET"
     };
-    plsub.logger.info("REDIRECT -- Hostname:"+packet.hostname+" Port:"+packet.port+" Path:"+packet.path);
-    var req = http.request(options, function(res){
+    plsub.logger.info("REDIRECT -- Hostname:" + packet.hostname + " Port:" + packet.port + " Path:" + packet.path);
+    var req = http.request(options, function(res) {
         self.response_stream.writeHead(200, res.headers);
-        plsub.logger.info("REDIRECT HEADERS :", {header:res.headers});
-        res.on("data", function(chunk){
+        plsub.logger.info("REDIRECT HEADERS :", {
+            header: res.headers
+        });
+        res.on("data", function(chunk) {
             self.response_stream.write(chunk);
         });
-        
-        res.on("error", function(err){
+
+        res.on("error", function(err) {
             plsub.logger.error(err.message);
             self.response_stream.writeHead(500);
             self.response_stream.write("Fatal error occurred.");
             self.response_stream.end();
         });
-        
-        res.on("end", function(){
+
+        res.on("end", function() {
             self.response_stream.end();
         });
     });
 
-    req.on("error", function(err){
-       plsub.logger.error(err); 
+    req.on("error", function(err) {
+        plsub.logger.error(err);
         self.response_stream.writeHead(500);
         self.response_stream.write("Fatal error occurred.");
         self.response_stream.end();
     });
-    
+
     req.end();
 };
 
-RequestHandler.prototype.processFileNotFound = function(){
+RequestHandler.prototype.processFileNotFound = function() {
     var self = this;
-    
+
     self.response_stream.writeHead(404, "");
     self.response_stream.write("File not found.");
     self.response_stream.end();
 };
 
 /* Recieved a response from context request */
-plsub.on("response", function(packet){
+plsub.on("response", function(packet) {
     Object.keys(request_stack).forEach(function(request_id) {
         if (request_id == packet.request_id) {
             switch (packet.response_type) {
@@ -146,20 +148,20 @@ plsub.on("response", function(packet){
 });
 
 /* Recieved that a service on context didn't know how to answer */
-plsub.on("noResponse", function(packet){
+plsub.on("noResponse", function(packet) {
     Object.keys(request_stack).forEach(function(request_id) {
         if (request_id == packet.request_id) {
             var finish_waiting = true;
-            
-            request_stack[request_id].listen_stack.forEach(function(listener){
+
+            request_stack[request_id].listen_stack.forEach(function(listener) {
                 if (packet.from == listener.worker_id) {
-                   listener.response = "noResponse";
+                    listener.response = "noResponse";
                 }
                 if (listener.response == "unknown") {
                     finish_waiting = false;
                 }
             });
-            
+
             //not waiting for any more services.
             if (finish_waiting) {
                 request_stack[request_id].processFileNotFound();
@@ -168,7 +170,7 @@ plsub.on("noResponse", function(packet){
     });
 });
 
-var server = http.createServer(function (req, res) {
+var server = http.createServer(function(req, res) {
     server.new_req = new RequestHandler(req, res);
 });
 

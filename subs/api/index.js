@@ -44,7 +44,7 @@ function filterAPIRequests(request_packet) {
 
 function sendAPI(api_request, request_packet) {
     var mod = require(api_request);
-    mod.init(universal_cache, request_packet, function(){
-       mod.run();
+    mod.init(universal_cache, request_packet, function() {
+        mod.run();
     });
 }
