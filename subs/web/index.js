@@ -28,6 +28,15 @@ var garbageCollector = function() {
     }
 };
 
+var requestSessionId = function(request) {
+    var request_packet = {
+        context: "web",
+        type: "session-generate",
+        ip_address: request.client_ip
+    }
+    plsub.send(request_packet);
+}
+
 /**
  * RequestHandler Object Definition
  */
@@ -40,8 +49,11 @@ var RequestHandler = function(req, res) {
     self.url = req.url;
     self.post_vars = req.post_vars;
     self.response_stream = res;
+    self.client_ip = req.connection.remoteAddress;
     self.scheduled_to_close = false;
-    self.headers = {};
+    self.headers = [];
+    
+    requestSessionId(self);
 
     var packet = {
         context: "web",
@@ -122,6 +134,14 @@ RequestHandler.prototype.processRedirect = function(packet) {
     req.end();
 };
 
+RequestHandler.prototype.setCookie = function(packet) {
+    var self = this;
+    
+    var cookie = self.headers['Set-Cookie'];
+    var cookie_str = packet.cookie_name + "=" + packet.cookie_value;
+    cookie.push(cookie_str);
+};
+
 RequestHandler.prototype.processFileNotFound = function() {
     var self = this;
 
@@ -141,6 +161,8 @@ plsub.on("response", function(packet) {
                 case "redirect":
                     request_stack[request_id].processRedirect(packet);
                     break;
+                case "setCookie":
+                    request_stack[request_id].setCookie(packet);
             }
             //no fall through
         }

@@ -9,10 +9,6 @@
 var plsub = require("party-line-sub"),
     MongoClient = require('mongodb').MongoClient;
 
-var MONGO_URL = 'mongodb://localhost:27017/floe';
-var db;
-var session_collection = db.collection('sessions');
-
 /**
  * Standard callback.
  *
@@ -24,36 +20,26 @@ var session_collection = db.collection('sessions');
 plsub.addListeningContext("web.api");
 plsub.addListeningContext("api");
 
-plsub.on("request", filterRequests);
+var MONGO_URL = 'mongodb://localhost:27017/floe';
+var db;
+var session_collection;
 
 MongoClient.connect(MONGO_URL, function(err, db_connection) {
-    if (err) {
+    if (!!err) {
         plsub.logger.error(err);
         return;
     }
     plsub.logger.log("Connected to Mongo database.");
     db = db_connection;
+    session_collection = db.collection('sessions');
 });
-
-/**
- * Sends a packet to reject the request.
- * @param {Object} request_packet Incoming packet from PL.
- */
-function sendNoReponsePacket(request_packet) {
-    var noroute_packet = {
-        type: "noResponse",
-        context: request_packet.from,
-        request_id: request_packet.request_id
-    };
-    plsub.send(noroute_packet);
-}
 
 var findSessionById = function(search_id, callback) {
     var search_obj = {
         _id: search_id
-    }
+    };
     session_collection.findOne(search_obj, function(err, result) {
-        if (err) { //error occurred while searching for function
+        if (!!err) { //error occurred while searching for function
             plsub.logger.error(err);
             callback(err, null);
             return;
@@ -79,15 +65,25 @@ var generateNewSessionObject = function(ip_address, callback) {
         last_seen: new Date().valueOf().toString()
     };
     session_collection.insert(session_obj, function(err, result) {
+        if (!!err) { //error occurred while searching for function
+            plsub.logger.error(err);
+        }
         callback(err, result.ops._id);
     });
 };
 
-var updateSessionObject = function(session_id, update_obj, callback) {
+var appendSessionObject = function(session_id, update_obj, callback) {
     var search_obj = {
         _id: session_id
     };
-    session_collection.update(search_obj, update_obj, function(err, result) {
+    update_obj.last_seen = new Date().valueOf().toString();
+    var data_obj = {
+        $set: update_obj
+    };
+    session_collection.update(search_obj, data_obj, function(err, result) {
+        if (!!err) { //error occurred while searching for function
+            plsub.logger.error(err);
+        }
         callback(err, result.ops);
     });
 };
@@ -97,6 +93,9 @@ var removeSessionObject = function(session_id, callback) {
         _id: session_id
     };
     session_collection.remove(search_obj, function(err, result) {
+        if (!!err) { //error occurred while searching for function
+            plsub.logger.error(err);
+        }
         callback(err, result);
     });
 };
@@ -104,21 +103,119 @@ var removeSessionObject = function(session_id, callback) {
 var cleanSessionObjects = function() {};
 
 /**
+ * Sends a packet to reject the request.
+ * @param {Object} request_packet Incoming packet from PL.
+ */
+function sendNoReponsePacket(request_packet) {
+    var noroute_packet = {
+        type: "noResponse",
+        context: request_packet.from,
+        request_id: request_packet.request_id
+    };
+    plsub.send(noroute_packet);
+}
+
+/**
+ * sends a results packet
+ * @param {Object} request_packet Incoming packet from PL
+ * @param {Object} err Error results object (only defined if there is an error)
+ * @param {Object} result Result is what help methods pass back when successfully executed.
+ */
+function sendStatusPacket(request_packet, err, result) {
+    var result_packet = {
+        type: "result",
+        original_request: request_packet.type,
+        context: request_packet.from,
+        request_id: request_packet.request_id,
+    };
+
+    if (!err) {
+        result_packet.status = "nominal";
+    }
+    else {
+        result_packet.status = "error";
+        result_packet.error = err;
+    }
+    plsub.send(result_packet);
+}
+
+function sendSessionObjectPacket(request_packet, err, session_object) {
+    var result_packet = {
+        type: "result",
+        original_request: request_packet.type,
+        context: request_packet.from,
+        request_id: request_packet.request_id,
+    };
+    if (!err) {
+        result_packet.status = "nominal";
+        result_packet.session_object = session_object;
+    }
+    else {
+        result_packet.status = "error";
+        result_packet.error = err;
+    }
+    plsub.send(result_packet);
+}
+
+/**
  * Filters incoming packet requests for packets only relevant to this sub.
  * @param {Object} request_packet  Incoming packet from PL.
  */
 function filterRequests(request_packet) {
+    plsub.logger.warn("---GOT HERE---");
     executeRequests(request_packet);
 }
+
+function sendSetSessionCookie(request_packet, session_id) {
+    var cookie_packet = {
+        type: "setCookie",
+        context: request_packet.from,
+        request_id: request_packet.request_id,
+        cookie_name: "session_id",
+        cookie_value: session_id
+    }
+    plsub.send(cookie_packet);
+}
+
 
 /**
  * Translates and fullfills request
  * @param {Object} request_packet Incoming packet from PL.
  */
 function executeRequests(request_packet) {
+    plsub.logger.warn(request_packet.type);
     var decision = {
-        "append": function() {},
-        "generate": function() {},
-        "remove": function() {}
-    }[request_packet.type]();
+        "session-append": function() {
+            appendSessionObject(request_packet.session_id, request_packet.data, function(err, result) {
+                sendStatusPacket(request_packet, err, result);
+            });
+        },
+        "session-generate": function() {
+            generateNewSessionObject(request_packet.ip_address, function(err, result) {
+                plsub.logger.info("Session ID:"+result);
+                sendStatusPacket(request_packet, err, result);
+                sendSetSessionCookie(request_packet, result);
+            });
+        },
+        "session-remove": function() {
+            removeSessionObject(request_packet.session_id, function(err, result) {
+                sendStatusPacket(request_packet, err, result);
+            });
+        },
+        "session-retrieve": function() {
+            findSessionById(request_packet.session_id, function(err, result) {
+                sendSessionObjectPacket(request_packet, err, result);
+            });
+        },
+        "default": function() {}
+    }[request_packet.type || "default"]();
 }
+
+plsub.on("session-generate", function(request_packet) {
+    plsub.logger.warn("GOT HERE");
+    generateNewSessionObject(request_packet.ip_address, function(err, result) {
+        plsub.logger.info("Session ID:"+result);
+        sendStatusPacket(request_packet, err, result);
+        sendSetSessionCookie(request_packet, result);
+    });
+});
