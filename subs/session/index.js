@@ -68,7 +68,9 @@ var generateNewSessionObject = function(ip_address, callback) {
         if (!!err) { //error occurred while searching for function
             plsub.logger.error(err);
         }
-        callback(err, result.ops._id);
+        var ObjectID = require("mongodb").ObjectID(result.ops[0]._id.id);
+        
+        callback(err, ObjectID);
     });
 };
 
@@ -162,11 +164,11 @@ function sendSessionObjectPacket(request_packet, err, session_object) {
  * @param {Object} request_packet  Incoming packet from PL.
  */
 function filterRequests(request_packet) {
-    plsub.logger.warn("---GOT HERE---");
     executeRequests(request_packet);
 }
 
 function sendSetSessionCookie(request_packet, session_id) {
+    plsub.logger.warn("request_packet", request_packet);
     var cookie_packet = {
         type: "setCookie",
         context: request_packet.from,
@@ -212,7 +214,6 @@ function executeRequests(request_packet) {
 }
 
 plsub.on("session-generate", function(request_packet) {
-    plsub.logger.warn("GOT HERE");
     generateNewSessionObject(request_packet.ip_address, function(err, result) {
         plsub.logger.info("Session ID:"+result);
         sendStatusPacket(request_packet, err, result);

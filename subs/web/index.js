@@ -32,7 +32,8 @@ var requestSessionId = function(request) {
     var request_packet = {
         context: "web",
         type: "session-generate",
-        ip_address: request.client_ip
+        ip_address: request.client_ip,
+        request_id: request.id
     }
     plsub.send(request_packet);
 }
@@ -88,7 +89,8 @@ RequestHandler.prototype.processPacket = function(packet) {
         self.headers[name] = Object.getOwnPropertyDescriptor(packet.header, name);
     });
 
-    self.response_stream.writeHead(packet.response_code, self.headers);
+    //self.response_stream.writeHead(packet.response_code, self.headers);
+    self.response_stream.statusCode = packet.response_code;
     self.response_stream.write(packet.content);
     self.response_stream.end();
 };
@@ -137,9 +139,10 @@ RequestHandler.prototype.processRedirect = function(packet) {
 RequestHandler.prototype.setCookie = function(packet) {
     var self = this;
     
-    var cookie = self.headers['Set-Cookie'];
+    var cookies = self.response_stream.getHeader('Set-Cookie') || [];
     var cookie_str = packet.cookie_name + "=" + packet.cookie_value;
-    cookie.push(cookie_str);
+    cookies.push(cookie_str);
+    self.response_stream.setHeader('Set-Cookie', cookies);
 };
 
 RequestHandler.prototype.processFileNotFound = function() {
@@ -161,10 +164,16 @@ plsub.on("response", function(packet) {
                 case "redirect":
                     request_stack[request_id].processRedirect(packet);
                     break;
-                case "setCookie":
-                    request_stack[request_id].setCookie(packet);
             }
             //no fall through
+        }
+    });
+});
+
+plsub.on("setCookie", function(packet) {
+    Object.keys(request_stack).forEach(function(request_id) {
+        if (request_id == packet.request_id) {
+            request_stack[request_id].setCookie(packet);
         }
     });
 });
