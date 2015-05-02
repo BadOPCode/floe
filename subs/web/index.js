@@ -52,8 +52,10 @@ var RequestHandler = function(req, res) {
     self.response_stream = res;
     self.client_ip = req.connection.remoteAddress;
     self.scheduled_to_close = false;
-    self.headers = [];
-    
+    self.headers = {'X-Powered-By':'Floe'};
+    self.cookies = {};
+    self.outbound_cookies = [];
+
     requestSessionId(self);
 
     var packet = {
@@ -86,11 +88,28 @@ RequestHandler.prototype.processPacket = function(packet) {
 
     //copy packet with HTML's header to what will be the response header
     Object.getOwnPropertyNames(packet.header).forEach(function(name) {
-        self.headers[name] = Object.getOwnPropertyDescriptor(packet.header, name);
+        var new_header = Object.getOwnPropertyDescriptor(packet.header, name);
+        //simplify header object
+        if (typeof(new_header) === 'object') { 
+            self.headers[name] = new_header.value;
+        } else {
+            self.headers[name] = new_header;
+        }
     });
 
-    //self.response_stream.writeHead(packet.response_code, self.headers);
-    self.response_stream.statusCode = packet.response_code;
+    //strip cookie object to an array for response.
+    var send_cookies = [];
+    self.outbound_cookies.forEach(function(cookie_name) {
+       send_cookies.push(self.cookies[cookie_name]); 
+    });
+
+    //add cookies to headers
+    self.headers['Set-Cookie'] = send_cookies;
+
+    plsub.logger.warn('headers', self.headers);
+
+    self.response_stream.writeHead(packet.response_code, self.headers);
+    //self.response_stream.statusCode = packet.response_code;
     self.response_stream.write(packet.content);
     self.response_stream.end();
 };
@@ -139,10 +158,11 @@ RequestHandler.prototype.processRedirect = function(packet) {
 RequestHandler.prototype.setCookie = function(packet) {
     var self = this;
     
-    var cookies = self.response_stream.getHeader('Set-Cookie') || [];
     var cookie_str = packet.cookie_name + "=" + packet.cookie_value;
-    cookies.push(cookie_str);
-    self.response_stream.setHeader('Set-Cookie', cookies);
+
+    self.cookies[packet.cookie_name] = cookie_str;
+    if (self.outbound_cookies.indexOf(packet.cookie_name)<0)
+        self.outbound_cookies.push(packet.cookie_name);
 };
 
 RequestHandler.prototype.processFileNotFound = function() {

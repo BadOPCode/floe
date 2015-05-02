@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "JSONStream": "^0.10.0",
+    "cookie": "^0.1.2",
     "node-uuid": "^1.4.2",
     "party-line-sub": "^1.0.0"
   }
