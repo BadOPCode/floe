@@ -11,10 +11,15 @@ app.controller("AppCtrl", function(){
     this.header = page_object.title;
 });
 
-app.controller("SystemMenu", function() {
+app.controller("SideShelfPanel", function($scope) {
     this.menuOpen = false;
+    this.title = "Side Shelf";
     
     this.toggleMenuState = function() {
        this.menuOpen = !this.menuOpen;  
     };
+});
+
+app.controller("SideMenu", function(){
+    
 });
