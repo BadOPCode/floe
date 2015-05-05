@@ -180,43 +180,28 @@ function sendSetSessionCookie(request_packet, session_id) {
 }
 
 
-/**
- * Translates and fullfills request
- * @param {Object} request_packet Incoming packet from PL.
- */
-function executeRequests(request_packet) {
-    plsub.logger.warn(request_packet.type);
-    var decision = {
-        "session-append": function() {
-            appendSessionObject(request_packet.session_id, request_packet.data, function(err, result) {
-                sendStatusPacket(request_packet, err, result);
-            });
-        },
-        "session-generate": function() {
-            generateNewSessionObject(request_packet.ip_address, function(err, result) {
-                plsub.logger.info("Session ID:"+result);
-                sendStatusPacket(request_packet, err, result);
-                sendSetSessionCookie(request_packet, result);
-            });
-        },
-        "session-remove": function() {
-            removeSessionObject(request_packet.session_id, function(err, result) {
-                sendStatusPacket(request_packet, err, result);
-            });
-        },
-        "session-retrieve": function() {
-            findSessionById(request_packet.session_id, function(err, result) {
-                sendSessionObjectPacket(request_packet, err, result);
-            });
-        },
-        "default": function() {}
-    }[request_packet.type || "default"]();
-}
-
 plsub.on("session-generate", function(request_packet) {
     generateNewSessionObject(request_packet.ip_address, function(err, result) {
         plsub.logger.info("Session ID:"+result);
         sendStatusPacket(request_packet, err, result);
         sendSetSessionCookie(request_packet, result);
+    });
+});
+
+plsub.on("session-retrieve", function(request_packet) {
+    findSessionById(request_packet.session_id, function(err, result) {
+        sendSessionObjectPacket(request_packet, err, result);
+    });
+});
+
+plsub.on("session-append", function(request_packet) {
+    appendSessionObject(request_packet.session_id, request_packet.data, function(err, result) {
+        sendStatusPacket(request_packet, err, result);
+    });
+});
+
+plsub.on("session-remove", function(request_packet) {
+    removeSessionObject(request_packet.session_id, function(err, result) {
+        sendStatusPacket(request_packet, err, result);
     });
 });

@@ -35,6 +35,7 @@ subs/less/content
 #local MongoDB server
 mongodb
 mongod
+mongod.sh
 
 #misc
 npm-debug.log
