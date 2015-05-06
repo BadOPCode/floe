@@ -163,8 +163,7 @@ function sendSessionObjectPacket(request_packet, err, session_object) {
  * Filters incoming packet requests for packets only relevant to this sub.
  * @param {Object} request_packet  Incoming packet from PL.
  */
-function filterRequests(request_packet) {
-    executeRequests(request_packet);
+function filterRequests(request_packet, cbValid, cbFailed) {
 }
 
 function sendSetSessionCookie(request_packet, session_id) {
