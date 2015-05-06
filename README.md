@@ -86,6 +86,42 @@ Each one of these subs has a specific duty it handles.  It is important to the
 philosophy of Floe that subs don't cross functionality.  This can impose extra
 challenges in designing.  But the final product is that you will have no 
 problems scaling and adding functionality.
+When a Floe subsystem is started Party Line will generate a address for the new
+worker that came online.  Subs should never have static addresses, because
+communication should always start with broadcasting who can solve your query.
+If your using the Party Line Sub module you will notice one of the first things
+it does is queries the bus for what it's current address is.
+```Example: {"context":"bus","type":"whoAmI"}```
+The bus will return back what this sub's current address is set to.  Which is
+GUID v4 string that will look like "eb4e98de-fda2-4b50-af72-f19a382144db".
+While Party Line most definitely allows for direct communication, again try to
+reframe from using it to initiate a Floe communication.  Instead use the channel
+context instead.  The subs will add themselves to the bus as listening to these
+channel contexts.
+```Example: {"context":"bus","type":"setListenContext","listen_context":["web.html"]}```
+This PL packet being sent to the PL bus will set the sending sub's listening context
+to the strings specified in listen_context.  In this case is just set to web.html.
+A sub can set itself to listen to as many channel contexts as it wants.  And there
+is nothing special that has to be done to create a channel context.  Just someone
+has to say they are going to listen for packets in it.
+Packets that are broadcasted to a context with no listeners is instantly killed
+and returns back an error to the sender.
+If your using party-line-sub module to add your sub to a channel context you looks
+like this:
+```
+var plsub  = require("party-line-sub");
+plsub.addListeningContext("my.channel.context");
+```
+And to send a message into this channel context you would write something like
+```
+    var test_packet = {
+        type: "test",
+        context: "my.channel.context",
+        message: "Hello World!"
+    };
+    plsub.send(test_packet);
+```
+
 
 ##API Subsystem
 Listens on context: api; web.api
