@@ -1,13 +1,16 @@
-'use strict';
+module.exports = (function() {
+    'use strict';
 
-//var mongoose = require();
-var MongoClient = require("mongodb").MongoClient;
-
-
-exports.init = function(universal_cache, request_packet, cb_loaded) {
+    function stateInit(universal_cache, request_packet, cb_loaded) {
+        
+        cb_loaded();
+    };
     
-    cb_loaded();
-};
+    function stateRun() {
+    };
 
-exports.run = function() {
-};
+    return {
+      init: stateInit,
+      run: stateRun
+    };
+});

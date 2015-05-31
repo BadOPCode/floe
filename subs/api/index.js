@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Generates web pages.
+ * Exposes front end API.
  * Shawn Rapp - 11/25/2014
  */
 var plsub = require("party-line-sub");

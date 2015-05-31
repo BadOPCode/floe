@@ -12,6 +12,7 @@
     "JSONStream": "^0.10.0",
     "ecstatic": "^0.5.8",
     "flatiron": "^0.4.3",
+    "oclazyload": "^0.6.3",
     "party-line-sub": "^1.0.0",
     "union": "^0.4.4"
   }
