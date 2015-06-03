@@ -1,4 +1,4 @@
-var floeService = app.module("floeService", function($http, $q) {
+angular.module('floeApp').factory("floeServices", function($http, $q) {
     function callApi(location, method, data) {
         var deferred = $q.defer();
         var request = {
@@ -10,24 +10,28 @@ var floeService = app.module("floeService", function($http, $q) {
         $http(request)
             .success(function(successResponse) {
                 deferred.resolve(successResponse);
+                console.log('win');
             })
             .error(function(failResponse) {
                 deferred.reject(failResponse);
+                console.log('lose');
             });
         
         return deferred.promise;
     }
     
-    function getSessionInfo(varName) {
+    var getSessionInfo = function(varName) {
+        console.log('getSessionInfo');
         var postData = {
             request_type: 'getVar',
             var_name: varName
         };
         
         return callApi('/api/session', 'POST', postData);
-    }
+    };
 
-    function setSessionInfo(varName, varValue) {
+    var setSessionInfo = function(varName, varValue) {
+        console.log('setSessionInfo');
         var postData = {
             request_type: 'setVar',
             var_name: varName,
@@ -35,10 +39,13 @@ var floeService = app.module("floeService", function($http, $q) {
         };
         
         return callApi('/api/session', 'POST', postData);
-    }
-
+    };
+    
+    console.log('got called');
+    
     return {
         getSessionInfo: getSessionInfo,
         setSessionInfo: setSessionInfo
     };
 });
+
