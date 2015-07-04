@@ -1,0 +1,14 @@
+{
+  "name": "Floe-Subs",
+  "version": "1.0.0",
+  "description": "Subsystems that makes the Floe server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shawn Rapp",
+  "license": "MIT",
+  "dependencies": {
+    "party-line-sub": "^1.0.2"
+  }
+}

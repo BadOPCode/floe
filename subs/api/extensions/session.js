@@ -17,7 +17,6 @@ module.exports = function(API, universal_cache) {
                 };
 
                 API.requestService(session_request, function(session_response) {
-                    API.logger.info('session_response', session_response);
                     if (!!session_response) {
                         var out_str = {
                             var_name: request_packet.post_vars.var_name,
@@ -35,7 +34,6 @@ module.exports = function(API, universal_cache) {
                             },
                             content: JSON.stringify(out_str)
                         };
-                        API.logger.info('outpacket', outpacket);
                         API.send(outpacket);
                     } else {
                         API.sendNoReponsePacket(request_packet);
