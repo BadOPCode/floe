@@ -11,7 +11,7 @@ var self_hostname = "localhost";
 var self_port = 4321;
 
 var fs = require("fs");
-var plsub = require('party-line-sub');
+var plsub = require('party-line-sub')('static');
 var union = require('union');
 var flatiron = require('flatiron');
 var ecstatic = require('ecstatic');

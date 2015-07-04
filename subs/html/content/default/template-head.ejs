@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app" ng-controller="AppCtrl as app">
+<html lang="en" ng-app="floeApp" ng-controller="appCtrl as app">
     <head>
         <meta charset=utf-8>
         <title>{{app.info.title}}</title>
@@ -9,6 +9,7 @@
 
         <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.11/angular.min.js"></script>
         <script src="https://code.angularjs.org/1.3.12/angular-animate.min.js"></script>
+        <script src="/js/ocLazyLoad.min.js"></script>
         <script src="/js/ui-bootstrap-0.12.0.min.js"></script>
         <script src="/js/default.js" /></script>
     </head>
@@ -17,13 +18,13 @@
             <div class="navbar navbar-default" id="topbar">
                 <div class="container-fluid">
                     <div class="navbar-inner">
-                        <div class="sys-menu" ng-controller="SideShelfPanel as sideShelf">
+                        <div class="sys-menu" ng-controller="sideShelfCtrl as sideShelf">
                             <button class="burger-btn btn btn-default navbar-btn" ng-class="{ open: sideShelf.menuOpen }" ng-click="sideShelf.toggleMenuState()"><i class="fa fa-bars"></i></button>
                             <div class="burger-menu navbar navbar-default" ng-class="{ open: sideShelf.menuOpen }">
                                 <div class="navbar-header">
                                     <span class="navbar-brand">{{sideShelf.title}}</span>
                                 </div>
-                                <div class="navbar-collapse collapse sidebar-navbar-collapse" ng-controller="SideMenu as sideMenu">
+                                <div class="navbar-collapse collapse sidebar-navbar-collapse" ng-controller="sideMenuCtrl as sideMenu">
                                     <ul class="nav navbar-nav">
                                     </ul>
                                 </div>
@@ -33,5 +34,5 @@
                 </div>
             </div>
         </div>
-        <div id="main-page" ng-controller="PageCtrl as page">
+        <div id="main-page" ng-controller="pageCtrl as page">
             <h1>{{app.info.title}}</h1>        

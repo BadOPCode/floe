@@ -5,7 +5,7 @@
  * Shawn Rapp - 2/18/2015
  */
  
-var plsub = require('party-line-sub');
+var plsub = require('party-line-sub')('less');
 var qc = require('quick-compare');
 var fs = require("fs");
 var rs = require("run-spout");
