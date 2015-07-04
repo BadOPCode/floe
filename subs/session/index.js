@@ -6,7 +6,7 @@
  * Shawn Rapp - 4/13/2015
  */
 
-var plsub = require("party-line-sub"),
+var plsub = require('party-line-sub')('session'),
     MongoClient = require('mongodb').MongoClient;
 
 /**
@@ -17,8 +17,8 @@ var plsub = require("party-line-sub"),
  * @param {Object} success
  */
 
-plsub.addListeningContext("web.api");
-plsub.addListeningContext("api");
+plsub.addListeningContext('web.api');
+plsub.addListeningContext('api');
 
 var MONGO_URL = 'mongodb://localhost:27017/floe';
 var db;
@@ -29,14 +29,15 @@ MongoClient.connect(MONGO_URL, function(err, db_connection) {
         plsub.logger.error(err);
         return;
     }
-    plsub.logger.log("Connected to Mongo database.");
+    plsub.logger.log('Connected to Mongo database.');
     db = db_connection;
     session_collection = db.collection('sessions');
 });
 
 var findSessionById = function(search_id, callback) {
+    var ObjectID = require('mongodb').ObjectID(search_id);
     var search_obj = {
-        _id: search_id
+        _id: ObjectID
     };
     session_collection.findOne(search_obj, function(err, result) {
         if (!!err) { //error occurred while searching for function
@@ -46,7 +47,7 @@ var findSessionById = function(search_id, callback) {
         }
 
         if (!result) { //couldn't find session
-            callback(new Error("Session" + result + " does not exist."), null);
+            callback(new Error('Session' + result + ' does not exist.'), null);
             return;
         }
 
@@ -62,14 +63,14 @@ var findSessionById = function(search_id, callback) {
 var generateNewSessionObject = function(ip_address, callback) {
     var session_obj = {
         ip_address: ip_address,
-        last_seen: new Date().valueOf().toString()
+        last_seen: (new Date).valueOf()
     };
     session_collection.insert(session_obj, function(err, result) {
         if (!!err) { //error occurred while searching for function
             plsub.logger.error(err);
         }
-        var ObjectID = require("mongodb").ObjectID(result.ops[0]._id.id);
-        
+        var ObjectID = require('mongodb').ObjectID(result.ops[0]._id.id);
+
         callback(err, ObjectID);
     });
 };
@@ -78,7 +79,7 @@ var appendSessionObject = function(session_id, update_obj, callback) {
     var search_obj = {
         _id: session_id
     };
-    update_obj.last_seen = new Date().valueOf().toString();
+    update_obj.last_seen = (new Date).valueOf();
     var data_obj = {
         $set: update_obj
     };
@@ -110,7 +111,7 @@ var cleanSessionObjects = function() {};
  */
 function sendNoReponsePacket(request_packet) {
     var noroute_packet = {
-        type: "noResponse",
+        type: 'noResponse',
         context: request_packet.from,
         request_id: request_packet.request_id
     };
@@ -125,17 +126,17 @@ function sendNoReponsePacket(request_packet) {
  */
 function sendStatusPacket(request_packet, err, result) {
     var result_packet = {
-        type: "result",
+        type: 'response',
         original_request: request_packet.type,
         context: request_packet.from,
         request_id: request_packet.request_id,
     };
 
     if (!err) {
-        result_packet.status = "nominal";
+        result_packet.status = 'nominal';
     }
     else {
-        result_packet.status = "error";
+        result_packet.status = 'error';
         result_packet.error = err;
     }
     plsub.send(result_packet);
@@ -143,19 +144,21 @@ function sendStatusPacket(request_packet, err, result) {
 
 function sendSessionObjectPacket(request_packet, err, session_object) {
     var result_packet = {
-        type: "result",
+        type: 'response',
         original_request: request_packet.type,
         context: request_packet.from,
         request_id: request_packet.request_id,
     };
     if (!err) {
-        result_packet.status = "nominal";
+        result_packet.status = 'nominal';
+        session_object._id = require('mongodb').ObjectID(session_object._id).toHexString();
         result_packet.session_object = session_object;
     }
     else {
-        result_packet.status = "error";
+        result_packet.status = 'error';
         result_packet.error = err;
     }
+    plsub.logger.info('result_packet', result_packet);
     plsub.send(result_packet);
 }
 
@@ -163,44 +166,44 @@ function sendSessionObjectPacket(request_packet, err, session_object) {
  * Filters incoming packet requests for packets only relevant to this sub.
  * @param {Object} request_packet  Incoming packet from PL.
  */
-function filterRequests(request_packet) {
-    executeRequests(request_packet);
-}
+// function filterRequests(request_packet) {
+//     executeRequests(request_packet);
+// }
 
 function sendSetSessionCookie(request_packet, session_id) {
-    plsub.logger.warn("request_packet", request_packet);
+    plsub.logger.warn('request_packet', request_packet);
     var cookie_packet = {
-        type: "setCookie",
+        type: 'setCookie',
         context: request_packet.from,
         request_id: request_packet.request_id,
-        cookie_name: "session_id",
+        cookie_name: 'session_id',
         cookie_value: session_id
     }
     plsub.send(cookie_packet);
 }
 
 
-plsub.on("session-generate", function(request_packet) {
+plsub.on('session-generate', function(request_packet) {
     generateNewSessionObject(request_packet.ip_address, function(err, result) {
-        plsub.logger.info("Session ID:"+result);
+        plsub.logger.info('Session ID:' + result);
         sendStatusPacket(request_packet, err, result);
         sendSetSessionCookie(request_packet, result);
     });
 });
 
-plsub.on("session-retrieve", function(request_packet) {
+plsub.on('session-retrieve', function(request_packet) {
     findSessionById(request_packet.session_id, function(err, result) {
         sendSessionObjectPacket(request_packet, err, result);
     });
 });
 
-plsub.on("session-append", function(request_packet) {
+plsub.on('session-append', function(request_packet) {
     appendSessionObject(request_packet.session_id, request_packet.data, function(err, result) {
         sendStatusPacket(request_packet, err, result);
     });
 });
 
-plsub.on("session-remove", function(request_packet) {
+plsub.on('session-remove', function(request_packet) {
     removeSessionObject(request_packet.session_id, function(err, result) {
         sendStatusPacket(request_packet, err, result);
     });

@@ -37,6 +37,9 @@ mongodb
 mongod
 mongod.sh
 
+#scratch directory for storing experiments
+scratch
+
 #misc
 npm-debug.log
 .c9

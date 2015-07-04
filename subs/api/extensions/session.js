@@ -1,20 +1,55 @@
-module.exports = function() {
+module.exports = function(API, universal_cache) {
     'use strict';
-    var uni_cache;
-    var req_packet;
 
-    function stateInit(universal_cache, request_packet, cb_loaded) {
-        uni_cache = universal_cache;
-        req_packet = request_packet;
-        
-        cb_loaded();
+    function stateInit() {}
+
+    function stateRun(request_packet) {
+        var decision = {
+            'default': function() {
+                API.logger.error('Uknown API call', request_packet);
+                API.sendNoReponsePacket(request_packet);
+            },
+            'getVar': function() {
+                var session_request = {
+                    context: 'api',
+                    type: 'session-retrieve',
+                    session_id: request_packet.session_id
+                };
+
+                API.requestService(session_request, function(session_response) {
+                    API.logger.info('session_response', session_response);
+                    if (!!session_response) {
+                        var out_str = {
+                            var_name: request_packet.post_vars.var_name,
+                            "value": session_response.session_object[request_packet.post_vars.var_name]
+                        };
+                        
+                        var outpacket = {
+                            type: 'response',
+                            response_type: 'html',
+                            context: request_packet.from,
+                            request_id: request_packet.request_id,
+                            response_code: 200,
+                            header: {
+                                'Content-Type': 'application/json'
+                            },
+                            content: JSON.stringify(out_str)
+                        };
+                        API.logger.info('outpacket', outpacket);
+                        API.send(outpacket);
+                    } else {
+                        API.sendNoReponsePacket(request_packet);
+                    }
+                });
+            }
+        };
+        (decision[request_packet.post_vars.request_type] || decision['default'])();
     }
-    
-    function stateRun() {
-    }
+
+    stateInit();
 
     return {
-      init: stateInit,
-      run: stateRun
+        init: stateInit,
+        run: stateRun
     };
 };

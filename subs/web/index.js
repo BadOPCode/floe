@@ -6,7 +6,7 @@
  */
 
 var http = require('http'),
-    plsub = require("party-line-sub");
+    plsub = require('party-line-sub')('web');
 
 var request_stack = [];
 
@@ -30,8 +30,8 @@ var garbageCollector = function() {
 
 var requestSessionId = function(request) {
     var request_packet = {
-        context: "web.api",
-        type: "session-generate",
+        context: 'web.api',
+        type: 'session-generate',
         ip_address: request.client_ip,
         request_id: request.id
     }
@@ -43,47 +43,64 @@ var requestSessionId = function(request) {
  */
 var RequestHandler = function(req, res) {
     var self = this;
+    var post_vars = '';
 
-    self.id = require("node-uuid").v4(); //generate a request ID
-    self.method = req.method;
-    self.host_name = req.headers.host;
-    self.url = req.url;
-    self.post_vars = req.post_vars;
-    self.request_headers = req.headers;
-    self.response_stream = res;
-    self.client_ip = req.connection.remoteAddress;
-    self.scheduled_to_close = false;
-    self.headers = {
-        'X-Powered-By': 'Floe'
-    };
-    self.cookies = {};
-    self.outbound_cookies = [];
+    function init() {
+        self.id = require('node-uuid').v4(); //generate a request ID
+        self.method = req.method;
+        self.host_name = req.headers.host;
+        self.url = req.url;
+        self.request_headers = req.headers;
+        self.response_stream = res;
+        self.client_ip = req.connection.remoteAddress;
+        self.scheduled_to_close = false;
+        self.headers = {
+            'X-Powered-By': 'Floe'
+        };
+        self.cookies = {};
+        self.outbound_cookies = [];
 
-    self.getCookies();
-    if (!self.cookies['session_id'])
-        requestSessionId(self);
+        self.getCookies();
+        if (!self.cookies['session_id'])
+            requestSessionId(self);
 
-    var packet = {
-        context: "web",
-        type: "request",
-        request_id: self.id,
-        method: self.method,
-        request: self.url,
-        post_vars: self.post_vars,
-        host_name: self.host_name
-    };
-    plsub.send(packet);
+        var packet = {
+            context: 'web',
+            type: 'request',
+            request_id: self.id,
+            method: self.method,
+            request: self.url,
+            post_vars: self.post_vars,
+            host_name: self.host_name,
+            session_id: self.cookies['session_id']
+        };
+        plsub.send(packet);
 
-    request_stack[self.id] = self;
+        request_stack[self.id] = self;
 
-    plsub.queryService("web", function(listen_stack) {
-        request_stack[self.id].listen_stack = listen_stack;
-    });
+        plsub.queryService('web', function(listen_stack) {
+            request_stack[self.id].listen_stack = listen_stack;
+        });
 
-    self.response_stream.on("close", function() {
-        self.scheduled_to_close = true;
-        garbageCollector();
-    });
+        self.response_stream.on('close', function() {
+            self.scheduled_to_close = true;
+            garbageCollector();
+        });
+    }
+
+    if (req.method == 'POST') {
+        req.on('data', function(chunk) {
+            post_vars += chunk;
+        });
+        req.on('end', function() {
+            self.post_vars = JSON.parse(post_vars);
+            init();
+        });
+    }
+    else {
+        init();
+    }
+
 };
 
 RequestHandler.prototype.processPacket = function(packet) {
@@ -124,34 +141,34 @@ RequestHandler.prototype.processRedirect = function(packet) {
         hostname: packet.hostname,
         port: packet.port,
         path: packet.path,
-        method: "GET"
+        method: 'GET'
     };
-    plsub.logger.info("REDIRECT -- Hostname:" + packet.hostname + " Port:" + packet.port + " Path:" + packet.path);
+    plsub.logger.info('REDIRECT -- Hostname:' + packet.hostname + ' Port:' + packet.port + ' Path:' + packet.path);
     var req = http.request(options, function(res) {
         self.response_stream.writeHead(200, res.headers);
-        plsub.logger.info("REDIRECT HEADERS :", {
+        plsub.logger.info('REDIRECT HEADERS :', {
             header: res.headers
         });
-        res.on("data", function(chunk) {
+        res.on('data', function(chunk) {
             self.response_stream.write(chunk);
         });
 
-        res.on("error", function(err) {
+        res.on('error', function(err) {
             plsub.logger.error(err.message);
             self.response_stream.writeHead(500);
-            self.response_stream.write("Fatal error occurred.");
+            self.response_stream.write('Fatal error occurred.');
             self.response_stream.end();
         });
 
-        res.on("end", function() {
+        res.on('end', function() {
             self.response_stream.end();
         });
     });
 
-    req.on("error", function(err) {
+    req.on('error', function(err) {
         plsub.logger.error(err);
         self.response_stream.writeHead(500);
-        self.response_stream.write("Fatal error occurred.");
+        self.response_stream.write('Fatal error occurred.');
         self.response_stream.end();
     });
 
@@ -161,7 +178,7 @@ RequestHandler.prototype.processRedirect = function(packet) {
 RequestHandler.prototype.setCookie = function(packet) {
     var self = this;
 
-    var cookie_str = packet.cookie_name + "=" + packet.cookie_value;
+    var cookie_str = packet.cookie_name + '=' + packet.cookie_value;
 
     self.cookies[packet.cookie_name] = cookie_str;
     if (self.outbound_cookies.indexOf(packet.cookie_name) < 0)
@@ -170,7 +187,7 @@ RequestHandler.prototype.setCookie = function(packet) {
 
 RequestHandler.prototype.getCookies = function() {
     var self = this;
-    var cookie = require("cookie");
+    var cookie = require('cookie');
 
     var cookie_str = self.request_headers['cookie'];
     self.cookies = cookie.parse(cookie_str);
@@ -179,20 +196,20 @@ RequestHandler.prototype.getCookies = function() {
 RequestHandler.prototype.processFileNotFound = function() {
     var self = this;
 
-    self.response_stream.writeHead(404, "");
-    self.response_stream.write("File not found.");
+    self.response_stream.writeHead(404, '');
+    self.response_stream.write('File not found.');
     self.response_stream.end();
 };
 
 /* Recieved a response from context request */
-plsub.on("response", function(packet) {
+plsub.on('response', function(packet) {
     Object.keys(request_stack).forEach(function(request_id) {
         if (request_id == packet.request_id) {
             switch (packet.response_type) {
-                case "html":
+                case 'html':
                     request_stack[request_id].processPacket(packet);
                     break;
-                case "redirect":
+                case 'redirect':
                     request_stack[request_id].processRedirect(packet);
                     break;
             }
@@ -201,7 +218,7 @@ plsub.on("response", function(packet) {
     });
 });
 
-plsub.on("setCookie", function(packet) {
+plsub.on('setCookie', function(packet) {
     Object.keys(request_stack).forEach(function(request_id) {
         if (request_id == packet.request_id) {
             request_stack[request_id].setCookie(packet);
@@ -210,16 +227,16 @@ plsub.on("setCookie", function(packet) {
 });
 
 /* Recieved that a service on context didn't know how to answer */
-plsub.on("noResponse", function(packet) {
+plsub.on('noResponse', function(packet) {
     Object.keys(request_stack).forEach(function(request_id) {
         if (request_id == packet.request_id) {
             var finish_waiting = true;
 
             request_stack[request_id].listen_stack.forEach(function(listener) {
                 if (packet.from == listener.worker_id) {
-                    listener.response = "noResponse";
+                    listener.response = 'noResponse';
                 }
-                if (listener.response == "unknown") {
+                if (listener.response == 'unknown') {
                     finish_waiting = false;
                 }
             });
